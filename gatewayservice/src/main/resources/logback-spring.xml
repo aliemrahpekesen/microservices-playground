@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<springProfile name="local">
+		<appender name="ELKSTASH"
+			class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+			<destination>localhost:9600</destination>
+			<encoder class="net.logstash.logback.encoder.LogstashEncoder" />
+		</appender>
+
+		<appender name="CONSOLE"
+			class="ch.qos.logback.core.ConsoleAppender">
+			<layout class="ch.qos.logback.classic.PatternLayout">
+				<Pattern>
+					kocsistem- %d{HH:mm:ss.SSS} [%t] %-5level %logger{36} ->
+					%msg%n
+				</Pattern>
+			</layout>
+		</appender>
+
+		<root level="INFO">
+			<appender-ref ref="CONSOLE" />
+			<appender-ref ref="ELKSTASH" />
+		</root>
+	</springProfile>
+
+	<springProfile name="docker">
+		<appender name="STASH"
+			class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+			<destination>logstash:9600</destination>
+			<encoder
+				class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+				<providers>
+					<mdc />
+					<context />
+					<version />
+					<logLevel />
+					<loggerName />
+					<pattern>
+						<pattern>
+							{
+							"serviceName": "gatewayservice"
+							}
+						</pattern>
+					</pattern>
+					<threadName />
+					<message />
+					<logstashMarkers />
+					<arguments />
+					<stackTrace />
+				</providers>
+			</encoder>
+		</appender>
+
+		<appender name="CONSOLE"
+			class="ch.qos.logback.core.ConsoleAppender">
+			<layout class="ch.qos.logback.classic.PatternLayout">
+				<Pattern>
+					kocsistem- %d{HH:mm:ss.SSS} [%t] %-5level %logger{36} ->
+					%msg%n
+				</Pattern>
+			</layout>
+		</appender>
+
+		<root level="INFO">
+			<appender-ref ref="STASH" />
+			<appender-ref ref="CONSOLE" />
+		</root>
+	</springProfile>
+</configuration>

@@ -1,0 +1,151 @@
+version: '3.7'
+
+services:
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    command: ["redis-server","--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+  
+  redis-commander: 
+    image: rediscommander/redis-commander:latest
+    container_name: redis-commander
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+      - HTTP_USER=root
+      - HTTP_PASSWORD=123456
+    ports: 
+      - "8081:8081"
+    restart: unless-stopped
+    depends_on: 
+      - "redis"
+      
+  kafka:
+    image: obsidiandynamics/kafka
+    container_name: kafka
+    environment:
+      KAFKA_LISTENERS: "INTERNAL://:29092,EXTERNAL://:9092"
+      KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka:29092,EXTERNAL://kafka:9092"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT"
+      KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
+      KAFKA_ZOOKEEPER_SESSION_TIMEOUT: "6000"
+      KAFKA_RESTART_ATTEMPTS: "10"
+      KAFKA_RESTART_DELAY: "5"
+      ZOOKEEPER_AUTOPURGE_PURGE_INTERVAL: "0"
+    ports:
+      - "9092:9092"
+      - "2181:2181"
+    restart: unless-stopped
+  
+  kafdrop:
+    image: obsidiandynamics/kafdrop
+    container_name: kafdrop
+    restart: "no"
+    ports:
+      - "9000:9000"
+    environment:
+      KAFKA_BROKERCONNECT: "kafka:29092"
+      JVM_OPTS: "-Xms16M -Xmx48M -Xss180K -XX:-TieredCompilation -XX:+UseStringDeduplication -noverify"
+    depends_on:
+      - "kafka"   
+     
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.3.0
+    container_name: elasticsearch
+    environment:
+      http.host: 0.0.0.0
+      transport.host: 127.0.0.1
+    ports:
+      - "9200:9200"
+    restart: unless-stopped
+    volumes:
+      - datamaster:/usr/share/elasticsearch/data:rw
+   
+  kibana:
+    image: docker.elastic.co/kibana/kibana-oss:7.3.0
+    container_name: kibana
+    environment:
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    restart: unless-stopped
+    depends_on:
+      - "elasticsearch"
+    links:
+      - "elasticsearch:elasticsearch"
+      
+  logstash:
+    image: docker.elastic.co/logstash/logstash-oss:7.3.0
+    container_name: logstash
+    volumes:
+      - ./elkstack/logstash/config:/etc/logstash/conf.d
+      - logstashdisk:/usr/share/logstash/core
+    command: -f /etc/logstash/conf.d/
+    ports:
+      - "9600:9600"
+    restart: unless-stopped
+    depends_on:
+      - "elasticsearch"
+    links:
+      - "elasticsearch:elasticsearch"
+  
+  discoveryservice:
+    image: discoveryservice:1.0
+    container_name: discoveryservice
+    environment:
+      JAVA_OPTS: -Xmx2048m -Xms2048m
+    build:
+      context: ./discoveryservice
+      dockerfile: Dockerfile
+    ports:
+      - "8761:8761"
+  
+  configserver:
+    image: configserver:1.0
+    container_name: configserver
+    environment:
+      JAVA_OPTS: -Xmx2048m -Xms2048m
+    build:
+      context: ./configserver
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+  
+  tracingserver:
+    image: tracingserver:1.0
+    container_name: tracingserver
+    environment:
+      JAVA_OPTS: -Xmx2048m -Xms2048m
+    build:
+      context: ./tracingserver
+      dockerfile: Dockerfile
+    ports:
+      - "9411:9411"
+     
+  administration:
+    image: administration:1.0
+    container_name: administration
+    build:
+      context: ./administration
+      dockerfile: Dockerfile
+    ports:
+      - "10000:10000"
+    environment: 
+      SPRING_CLOUD_CONFIG_URI: "http://configserver:8000"
+      SPRING_CLOUD_CONFIG_FAIL-FAST: "true"
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_APPLICATON_NAME: administration
+      JAVA_OPTS: -Xmx2048m -Xms2048m
+    restart: always
+     
+volumes:
+   redis-data:
+   datamaster:
+     driver: local
+   logstashdisk:
+     driver: local
+   

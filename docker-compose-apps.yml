@@ -1,0 +1,88 @@
+version: '3.7'
+
+services:
+   
+  authservice:
+    image: authservice:1.0
+    container_name: authservice
+    build:
+      context: ./authservice
+    ports:
+      - "8082:80"
+    restart: unless-stopped
+     
+  gatewayservice:
+    image: gatewayservice:1.0
+    container_name: gatewayservice
+    build:
+      context: ./gatewayservice
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment: 
+      SPRING_CLOUD_CONFIG_URI: "http://configserver:8000"
+      SPRING_CLOUD_CONFIG_FAIL-FAST: "true"
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_APPLICATON_NAME: gatewayservice
+      JAVA_OPTS: -Xmx2048m -Xms2048m
+    restart: always 
+    links:
+      - "logstash:logstash"
+   
+  orderservice:
+    image: orderservice:1.0
+    container_name: orderservice
+    build:
+      context: ./orderservice
+      dockerfile: Dockerfile
+    ports:
+      - "8083:8083"
+    environment: 
+      SPRING_CLOUD_CONFIG_URI: "http://configserver:8000"
+      SPRING_CLOUD_CONFIG_FAIL-FAST: "true"
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_APPLICATON_NAME: orderservice
+      JAVA_OPTS: -Xmx2048m -Xms2048m
+    restart: always 
+    links:
+      - "logstash:logstash"
+      - "kafka:kafka"
+
+  paymentservice:
+    image: paymentservice:1.0
+    container_name: paymentservice
+    build:
+      context: ./paymentservice
+      dockerfile: Dockerfile
+    ports:
+      - "8084:8084"
+    environment: 
+      SPRING_CLOUD_CONFIG_URI: "http://configserver:8000"
+      SPRING_CLOUD_CONFIG_FAIL-FAST: "true"
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_APPLICATON_NAME: paymentservice
+      JAVA_OPTS: -Xmx2048m -Xms2048m
+    restart: always
+    links:
+      - "logstash:logstash"
+      - "kafka:kafka"
+    
+  deliveryservice:
+    image: deliveryservice:1.0
+    container_name: deliveryservice
+    build:
+      context: ./deliveryservice
+      dockerfile: Dockerfile
+    ports:
+      - "8085:8085"
+    environment: 
+      SPRING_CLOUD_CONFIG_URI: "http://configserver:8000"
+      SPRING_CLOUD_CONFIG_FAIL-FAST: "true"
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_APPLICATON_NAME: deliveryservice
+      JAVA_OPTS: -Xmx2048m -Xms2048m
+    restart: always 
+    links:
+      - "logstash:logstash"
+      - "kafka:kafka" 
+     
