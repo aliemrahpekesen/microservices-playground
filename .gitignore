@@ -482,6 +482,21 @@ buildNumber.properties
 # Ignore all local history of files
 .history
 
+.settings
+.project
+.classpath
+.factorypath
+
+/.project
+/.settings
+/.classpath
+/.factorypath
+
+/**/.settings/
+/**/.project/
+/**/.classpath/
+/**/.factorypath/
+
 ### VisualStudio ###
 
 # User-specific files
