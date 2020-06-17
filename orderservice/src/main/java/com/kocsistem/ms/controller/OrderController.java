@@ -35,7 +35,7 @@ public class OrderController {
 		LOGGER.info("USECASENO : {} || Order Started -> Product Id : {}, Customer Id : {}", request.getUseCaseNo(),
 				request.getItemId(), request.getCustomerId());
 		OrderPlacementRes response = orderService.create(request);
-		LOGGER.info("USECASENO : {} || Order Process Completed -> Product Id : {}, Customer Id : {}, Current Status : ",
+		LOGGER.info("USECASENO : {} || Order Process Completed -> Product Id : {}, Customer Id : {}, Current Status : {}",
 				request.getUseCaseNo(), request.getItemId(), request.getCustomerId(), response.getStatus());
 
 		return response;

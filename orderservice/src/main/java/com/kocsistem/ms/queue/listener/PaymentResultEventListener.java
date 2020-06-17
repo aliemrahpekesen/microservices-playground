@@ -26,8 +26,8 @@ public class PaymentResultEventListener {
 			LOGGER.info("PAYMENT_SUCCEEDED event received for order {} with payment confirmation Id {}",
 					paymentEventPayload.getOrderId(), paymentEventPayload.getPaymentConfirmationId());
 			orderService.update(paymentEventPayload.getOrderId(), OrderStatus.PLACED);
-		} else if (PaymentAction.PAYMENT_NOT_SUCCEEDED.equals(paymentEventPayload.getAction())) {
-			LOGGER.info("PAYMENT_NOT_SUCCEEDED event received for order {}.", paymentEventPayload.getOrderId());
+		} else if (PaymentAction.PAYMENT_FAILED.equals(paymentEventPayload.getAction())) {
+			LOGGER.info("PAYMENT_FAILED event received for order {}.", paymentEventPayload.getOrderId());
 			orderService.update(paymentEventPayload.getOrderId(), OrderStatus.NOT_PROCEED);
 		}
 

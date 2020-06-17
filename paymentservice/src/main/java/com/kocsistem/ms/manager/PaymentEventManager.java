@@ -28,7 +28,7 @@ public class PaymentEventManager {
 	public void publishPaymentNotSucceededEvent(long orderId, int useCaseNoToBeRun) {
 		MessageChannel messageChannel = paymentChannel.paymentOutput();
 		messageChannel.send(MessageBuilder
-				.withPayload(PaymentEvent.builder().useCaseNoToBeRun(useCaseNoToBeRun).orderId(orderId).action(PaymentAction.PAYMENT_NOT_SUCCEEDED)
+				.withPayload(PaymentEvent.builder().useCaseNoToBeRun(useCaseNoToBeRun).orderId(orderId).action(PaymentAction.PAYMENT_FAILED)
 						.paymentConfirmationId(-1).build())
 				.setHeader(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON).build());
 	}
